@@ -1,6 +1,6 @@
 <?php
 
-namespace Shoplo;
+namespace Njacek\ShoploClient\Resources;
 
 class Order extends Resource
 {

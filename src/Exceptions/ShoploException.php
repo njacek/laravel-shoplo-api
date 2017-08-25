@@ -1,6 +1,6 @@
 <?php
 
-namespace Shoplo;
+namespace Njacek\ShoploClient\Exceptions;
 
 class ShoploException extends \Exception
 {

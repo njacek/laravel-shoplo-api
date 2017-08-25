@@ -1,6 +1,6 @@
 <?php
 
-namespace Shoplo;
+namespace Njacek\ShoploClient;
 
 define('SHOPLO_API_URL','http://api.shoplo.com');
 define('SHOPLO_REQUEST_TOKEN_URI', '/services/oauth/request_token');
@@ -301,7 +301,7 @@ class ShoploApi
     {
         return $this->oauth_token_secret;
     }
-    
+
     /**
 	 * @return string
 	 */
