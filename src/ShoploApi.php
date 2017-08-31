@@ -2,12 +2,6 @@
 
 namespace Njacek\ShoploClient;
 
-define('SHOPLO_API_URL','http://api.shoplo.com');
-define('SHOPLO_REQUEST_TOKEN_URI', '/services/oauth/request_token');
-define('SHOPLO_ACCESS_TOKEN_URI', '/services/oauth/access_token');
-define('SHOPLO_AUTHORIZE_URL', SHOPLO_API_URL . '/services/oauth/authorize');
-
-
 class ShoploApi
 {
     /**
@@ -151,36 +145,30 @@ class ShoploApi
      */
     public $shop_domain = null;
 
-    public function __construct($config, $authStore=null, $disableSession=false)
+    public function __construct($authStore=null, $disableSession=false)
     {
-        if ( !$disableSession && !session_id() )
+        if (config('shoplo.consumer_key') == null)
         {
-            throw new ShoploException('Session not initialized');
+            throw new ShoploException('Invalid API key or no key defined');
         }
-        if ( !isset($config['api_key']) || empty($config['api_key']) )
+        if (config('shoplo.secret_key') == null)
         {
-            throw new ShoploException('Invalid Api Key');
+            throw new ShoploException('Invalid API key or no key defined');
         }
-        elseif ( !isset($config['secret_key']) || empty($config['secret_key']) )
+        if (config('shoplo.callback_url') == null)
         {
-            throw new ShoploException('Invalid Api Key');
-        }
-        elseif ( !isset($config['callback_url']) || empty($config['callback_url']) )
-        {
-            throw new ShoploException('Invalid Callback Url');
+            throw new ShoploException('Invalid Callback URL or no Callback URL defined');
         }
 
+        $this->api_key    = config('shoplo.consumer_key');
+        $this->secret_key = config('shoplo.secret_key');
 
-        $this->api_key    = $config['api_key'];
-        $this->secret_key = $config['secret_key'];
+        // if( isset($_GET['shop_domain']) )
+        // {
+        //     $this->shop_domain = addslashes($_GET['shop_domain']);
+        // }
 
-        if( isset($_GET['shop_domain']) )
-        {
-            $this->shop_domain = addslashes($_GET['shop_domain']);
-        }
-
-        $this->callback_url = (false === strpos($config['callback_url'], 'http')) ? 'http://'.$config['callback_url'] : $config['callback_url'];
-
+        $this->callback_url = (false === strpos(config('shoplo.callback_url'), 'http')) ? 'http://'.config('shoplo.callback_url') : config('shoplo.callback_url');
         $this->auth_store = AuthStore::getInstance($authStore);
     }
     public function initClient($token = null, $tokenSecret = null)
@@ -231,7 +219,7 @@ class ShoploApi
 
         try
         {
-            $response = $client->getRequestToken(SHOPLO_API_URL.SHOPLO_REQUEST_TOKEN_URI, $this->callback_url);
+            $response = $client->getRequestToken(config('shoplo.api_url') . config('shoplo.request_token_uri'), $this->callback_url);
         }
         catch( \Exception $e )
         {
@@ -240,19 +228,20 @@ class ShoploApi
 
         $client->setToken($response['oauth_token'], $response['oauth_token_secret']);
 
-        $_SESSION['oauth_token_secret'] = $response['oauth_token_secret'];
+        session(['oauth_token_secret' => $response['oauth_token_secret']]);
 
-        if( isset($_SESSION['shop_domain']) && $_SESSION['shop_domain'] )
+        if(session('shop_domain'))
         {
-            $shopDomain = $_SESSION['shop_domain'];
+            $shopDomain = session('shop_domain');
             $callback_uri = $this->callback_url . '?consumer_key='.rawurlencode($this->api_key).'&shop_domain='.$shopDomain;
 
-            unset($_SESSION['shop_domain']);
+            session(['shop_domain' => NULL]);
+            session()->save();
         }
         else
             $callback_uri = $this->callback_url . '?consumer_key='.rawurlencode($this->api_key);
 
-        $response['login_url'] = SHOPLO_AUTHORIZE_URL . '?oauth_token='.rawurlencode($response['oauth_token']).'&oauth_callback='.rawurlencode($callback_uri);
+        $response['login_url'] = config('shoplo.authorize_url') . '?oauth_token='.rawurlencode($response['oauth_token']).'&oauth_callback='.rawurlencode($callback_uri);
         return $response;
     }
 
@@ -263,14 +252,14 @@ class ShoploApi
 
         try
         {
-            $response = $client->getAccessToken(SHOPLO_API_URL.SHOPLO_ACCESS_TOKEN_URI, null, $oauthTokenVerifier);
+            $response = $client->getAccessToken(config('shoplo.api_url') . config('shoplo.access_token_uri'), null, $oauthTokenVerifier);
         }
         catch( \Exception $e )
         {
             throw new ShoploException($e->getMessage());
         }
 
-        unset($_SESSION['oauth_token_secret']);
+        session(['oauth_token_secret' => NULL]);
 
         $this->oauth_token = $response['oauth_token'];
         $this->oauth_token_secret = $response['oauth_token_secret'];
@@ -340,6 +329,4 @@ class ShoploApi
         unset($this->application_charge);
         unset($this->recurring_application_charge);
     }
-
-
 }

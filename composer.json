@@ -1,9 +1,14 @@
 {
     "name": "njacek/laravel-shoplo-api",
-    "version": "1.0",
-    "autoload": {
-        "psr-4": {
-            "Njacek\\ShoploClient\\": "src/"
+    "description": "Shoplo API client for Laravel 5.x",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jacek Nieweglowski",
+            "email": "njacek@gmail.com"
         }
-    }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
 }

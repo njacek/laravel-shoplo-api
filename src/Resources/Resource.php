@@ -2,6 +2,9 @@
 
 namespace Njacek\ShoploClient\Resources;
 
+use Njacek\ShoploClient\Exceptions\AuthException;
+use Njacek\ShoploClient\Exceptions\ShoploException;
+
 class Resource
 {
     protected $client;
@@ -17,7 +20,7 @@ class Resource
 	{
 		$string = '';
 		if (is_array($params)) {
-			foreach ($params as $k => $v) if (!is_array($v)) $string .= $k . '=' . rawurlencode($v) . '&';
+			foreach ($params as $k => $v) if (!is_array($v)) $string .= $k . '=' . urlencode($v) . '&';
 			$string = substr($string, 0, strlen($string) - 1);
 		}
 		return $string;
@@ -51,7 +54,7 @@ class Resource
             if( !$this->client instanceof \Oauth )
                 throw new ShoploException("No authorisation");
 
-            $this->client->fetch(SHOPLO_API_URL.$uri, $body, $method);
+            $this->client->fetch(config('shoplo.api_url').$uri, $body, $method);
             $result = json_decode( $this->client->getLastResponse(), true);
         }
         catch( \Exception $e )
