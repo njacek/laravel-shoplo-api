@@ -163,11 +163,6 @@ class ShoploApi
         $this->api_key    = config('shoplo.consumer_key');
         $this->secret_key = config('shoplo.secret_key');
 
-        // if( isset($_GET['shop_domain']) )
-        // {
-        //     $this->shop_domain = addslashes($_GET['shop_domain']);
-        // }
-
         $this->callback_url = (false === strpos(config('shoplo.callback_url'), 'http')) ? 'http://'.config('shoplo.callback_url') : config('shoplo.callback_url');
         $this->auth_store = AuthStore::getInstance($authStore);
     }
